@@ -17,44 +17,40 @@ contract CeloPoap is ERC721Enumerable, ERC721URIStorage {
     Counters.Counter _collectionCounter;
 
     // tracks a collection to a given code
-    mapping(uint => bytes32) public codeOfCollection;
+    mapping(uint => bytes32) private codeOfCollection;
 
     // tracks a code token to a collection
-    mapping(bytes32 => uint) public collectionOfCode;
+    mapping(bytes32 => uint) private collectionOfCode;
 
     // tracks the maximum number of mints for a given code
-    mapping(uint => uint) public maxMint;
+    mapping(uint => uint) private maxMint;
 
     // tracks the number of minted tokens per code
-    mapping(uint => uint) public minted;
+    mapping(uint => uint) private minted;
 
     // tacks collection mints of address;
     mapping(address => mapping(uint => bool)) mints;
 
     // tracks the time when a given code expires
-    mapping(uint => uint) public expireTime;
+    mapping(uint => uint) private expireTime;
 
     // all collections
-    mapping(uint => string) public collections;
+    mapping(uint => string) private collections;
 
     // tracks owners of collections
-    mapping(address => mapping(uint => uint)) public ownerOfcollection;
+    mapping(address => mapping(uint => uint)) private ownerOfcollection;
 
     // track collection count of creators
     mapping(address => uint) public collectionsOf;
 
-    modifier _isValidCode(bytes32 _code) {
+    modifier _isValidCode(bytes32 _code, uint _collectionIndex) {
         uint collectionIndex = collectionOfCode[_code];
         require(collectionIndex > 0, "Invalid token code");
+        require(_collectionIndex == collectionIndex, "Code isn't for this collection");
         require(
             expireTime[collectionIndex] > block.timestamp,
             "Code has expired"
         );
-        _;
-    }
-
-    modifier _canMint(bytes32 _code) {
-        uint collectionIndex = collectionOfCode[_code];
         require(
             maxMint[collectionIndex] > minted[collectionIndex],
             "Maximum mint reached"
@@ -91,8 +87,10 @@ contract CeloPoap is ERC721Enumerable, ERC721URIStorage {
         uint _maxMint,
         uint _secondsToExpire,
         bytes32 code,
-        string memory _uri
+        string calldata _uri
     ) external {
+        require(bytes(_uri).length > 0, "Empty uri");
+        require(_maxMint > 0, "Max mint needs to be at least one");
         _collectionCounter.increment();
 
         uint collectionIndex = _collectionCounter.current();
@@ -121,14 +119,8 @@ contract CeloPoap is ERC721Enumerable, ERC721URIStorage {
      */
     function claimToken(uint collectionIndex, bytes32 code)
         external
-        _isValidCode(code)
-        _canMint(code)
+        _isValidCode(code, collectionIndex)
     {
-        require(
-            collectionIndex != 0 &&
-                collectionIndex <= _collectionCounter.current(),
-            "Collection does not exist"
-        );
         require(
             !mints[msg.sender][collectionIndex],
             "You have already minted a token from this collection"
@@ -136,31 +128,6 @@ contract CeloPoap is ERC721Enumerable, ERC721URIStorage {
 
         uint tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        string memory _uri = collections[collectionIndex];
-
-        minted[collectionIndex] += 1;
-
-        mints[msg.sender][collectionIndex] = true;
-
-        _safeMint(msg.sender, tokenId);
-        _setTokenURI(tokenId, _uri);
-
-        emit TokenMinted(tokenId, collectionIndex, msg.sender);
-    }
-
-    function claimTokenByCode(bytes32 code)
-        external
-        _isValidCode(code)
-        _canMint(code)
-    {
-        uint collectionIndex = collectionOfCode[code];
-        require(
-            !mints[msg.sender][collectionIndex],
-            "You have already minted a token from this collection"
-        );
-        _tokenIdCounter.increment();
-        uint tokenId = _tokenIdCounter.current();
-
         string memory _uri = collections[collectionIndex];
 
         minted[collectionIndex] += 1;
@@ -206,6 +173,7 @@ contract CeloPoap is ERC721Enumerable, ERC721URIStorage {
             uint
         )
     {
+        require(_address != address(0));
         require(collectionIndex <= collectionsOf[_address], "Invalid index");
 
         uint index = ownerOfcollection[_address][collectionIndex];
