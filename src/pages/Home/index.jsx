@@ -63,7 +63,7 @@ export default function Home() {
                                     <Card
                                         hoverable
                                         style={{ width: 240 }}
-                                        cover={<img alt={name} src={`https://ipfs.io/ipfs/${image.split("//")[1]}`} />}
+                                        cover={<img alt={name} src={`https://gateway.pinata.cloud/ipfs/${image.split("//")[1]}`} />}
                                         actions={[
                                             <ClaimToken collectionIndex={collectionIndex.toString()} />
                                         ]}
@@ -75,7 +75,7 @@ export default function Home() {
                                             <Col >
                                                 <Statistic title="Claimed" value={minted} suffix={`/ ${maxMint}`} />
                                             </Col>
-                                            <Col Span={24}>
+                                            <Col span={24}>
                                                 <Statistic.Countdown title="Expires In" value={expires} />
                                             </Col>
                                         </Row>
@@ -98,7 +98,7 @@ export default function Home() {
                                     <Card
                                         hoverable
                                         style={{ width: 240 }}
-                                        cover={<img alt={name} src={`https://ipfs.io/ipfs/${image.split("//")[1]}`} />}
+                                        cover={<img alt={name} src={`https://gateway.pinata.cloud/ipfs/${image.split("//")[1]}`} />}
                                     >
 
                                         <Card.Meta title={name} />

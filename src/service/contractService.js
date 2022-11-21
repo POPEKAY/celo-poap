@@ -114,7 +114,7 @@ export const getNFTData = async (url) => {
     }
     const [,token] = url.split("//");
     
-        const response = await fetch(`https://ipfs.io/ipfs/${token}`, {
+        const response = await fetch(`https://gateway.pinata.cloud/ipfs/${token}`, {
             method: "GET",
         });
 
